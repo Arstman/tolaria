@@ -275,6 +275,21 @@ describe('useEditorSaveWithLinks', () => {
   })
 
   describe('Type body template metadata', () => {
+    it('publishes an edited Type body template before deferred metadata settles', () => {
+      const { result } = renderHookWithLinks()
+
+      act(() => {
+        result.current.handleContentChange(
+          '/project.md',
+          '---\ntype: Type\n---\n# Project\n\n## Immediate template\n',
+        )
+      })
+
+      expect(updateEntry).toHaveBeenCalledWith('/project.md', {
+        template: '## Immediate template',
+      })
+    })
+
     it('keeps a Type note body template live after editing the note', () => {
       const { result } = renderHookWithLinks()
 

@@ -3,6 +3,8 @@ import { parseFrontmatter } from '../utils/frontmatter'
 import { splitFrontmatter } from '../utils/wikilinks'
 import { frontmatterToEntryPatch, type PropertiesPatch } from './frontmatterOps'
 
+const TYPE_DOCUMENT_FRONTMATTER = /(?:^|\n)\s*(?:type|is_a|is a)\s*:\s*["']?Type["']?\s*(?:\n|$)/i
+
 function isTemplateField(line: string): boolean {
   const trimmed = line.trim()
   if (!trimmed.endsWith(':')) return false
@@ -86,4 +88,12 @@ export function deriveRawEditorEntryState(content: string): Partial<VaultEntry> 
     derived.template = bodyTemplate(content)
   }
   return derived
+}
+
+export function deriveLiveTypeTemplatePatch(content: string): Pick<VaultEntry, 'template'> | null {
+  const [frontmatter] = splitFrontmatter(content)
+  if (!TYPE_DOCUMENT_FRONTMATTER.test(frontmatter)) return null
+
+  const state = deriveRawEditorEntryState(content)
+  return state.isA === 'Type' ? { template: state.template ?? null } : null
 }
