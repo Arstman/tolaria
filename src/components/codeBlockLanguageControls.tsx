@@ -28,7 +28,6 @@ type LanguageSelectControl = HTMLSelectElement
 
 const NATIVE_LANGUAGE_CONTROL_SELECTOR =
   '.bn-block-content[data-content-type="codeBlock"] > div > select'
-const LANGUAGE_OVERLAY_SELECTOR = '.editor__code-block-language-overlay[data-code-block-id]'
 const ELEMENT_NODE = 1
 
 const LANGUAGE_OPTIONS = Object.entries(
@@ -82,21 +81,15 @@ function sameTargets(current: CodeBlockLanguageTarget[], next: CodeBlockLanguage
   return JSON.stringify(current) === JSON.stringify(next)
 }
 
-function codeBlockLanguageOverlays(): Map<string, HTMLElement> {
-  const overlays = new Map<string, HTMLElement>()
-  document.querySelectorAll<HTMLElement>(LANGUAGE_OVERLAY_SELECTOR).forEach((overlay) => {
-    const blockId = overlay.dataset.codeBlockId
-    if (blockId) overlays.set(blockId, overlay)
-  })
-  return overlays
+function languageOverlayId(blockId: string): string {
+  return `tolaria-code-language-${blockId}`
 }
 
 function repositionCodeBlockLanguageOverlays(): void {
-  const overlays = codeBlockLanguageOverlays()
   document.querySelectorAll<LanguageSelectControl>(NATIVE_LANGUAGE_CONTROL_SELECTOR)
     .forEach((nativeControl) => {
       const blockId = nativeControl.closest(BLOCK_CONTAINER_SELECTOR)?.getAttribute('data-id')
-      const overlay = blockId ? overlays.get(blockId) : null
+      const overlay = blockId ? document.getElementById(languageOverlayId(blockId)) : null
       if (!overlay) return
       const rect = nativeControl.getBoundingClientRect()
       overlay.style.left = `${rect.left}px`
@@ -220,6 +213,7 @@ export function CodeBlockLanguageControls({ editor }: { editor: CodeBlockLanguag
 
   return targets.map((target) => createPortal(
     <div
+      id={languageOverlayId(target.blockId)}
       className="editor__code-block-language-overlay"
       data-code-block-id={target.blockId}
       style={{ left: target.left, minHeight: target.height, top: target.top }}
