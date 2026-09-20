@@ -25,21 +25,30 @@ function shouldRemoveInlineMarker(
   return !isLetterOrNumber(previousCharacter) || !isLetterOrNumber(nextCharacter)
 }
 
+function nextCharacter(iterator: ArrayIterator<string>): string | undefined {
+  const result = iterator.next()
+  return result.done ? undefined : result.value
+}
+
 function stripInlineMarkers(text: string): string {
-  const characters = [...text]
+  const iterator = Array.from(text).values()
   let result = ''
+  let previousCharacter: string | undefined
+  let character = nextCharacter(iterator)
+  let followingCharacter = nextCharacter(iterator)
 
-  for (let index = 0; index < characters.length; index += 1) {
-    const character = characters[index]
-    const nextCharacter = characters[index + 1]
-
-    if (character === '\\' && isEscapableInlineMarker(nextCharacter)) {
-      result += nextCharacter
-      index += 1
+  while (character !== undefined) {
+    if (character === '\\' && isEscapableInlineMarker(followingCharacter)) {
+      result += followingCharacter
+      previousCharacter = followingCharacter
+      character = nextCharacter(iterator)
+      followingCharacter = nextCharacter(iterator)
       continue
     }
-    if (shouldRemoveInlineMarker(character, characters[index - 1], nextCharacter)) continue
-    result += character
+    if (!shouldRemoveInlineMarker(character, previousCharacter, followingCharacter)) result += character
+    previousCharacter = character
+    character = followingCharacter
+    followingCharacter = nextCharacter(iterator)
   }
 
   return result
