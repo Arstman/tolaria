@@ -18,10 +18,13 @@ describe('Bash code block highlighting', () => {
     await expect(highlighter?.loadLanguage('bash')).resolves.toBeUndefined()
     expect(highlighter?.getLoadedLanguages()).toContain('bash')
 
-    const html = await highlighter?.codeToHtml('echo "$HOME"', {
+    const highlighted = await highlighter?.codeToTokens('echo "$HOME"', {
       lang: 'bash',
       theme: 'github-light',
     })
-    expect(html).toContain('color:#005CC5')
+    expect(highlighted?.tokens[0]?.[0]).toMatchObject({
+      color: '#005CC5',
+      content: 'echo',
+    })
   })
 })
