@@ -1,5 +1,5 @@
-import fs from 'fs'
-import path from 'path'
+import fs from 'node:fs'
+import path from 'node:path'
 import { test, expect, type Page } from '@playwright/test'
 import {
   createFixtureVaultCopy,
@@ -99,9 +99,10 @@ test('long rich-editor notes stay editable across typing, wikilinks, save, and n
   await expect(editor).toContainText(endEdit.trim(), { timeout: 5_000 })
   await expect(editor.locator('.wikilink').filter({ hasText: 'Alpha Project' }).last()).toBeVisible()
 
-  await expect.poll(() => fs.readFileSync(longNotePath, 'utf8'), { timeout: 5_000 }).toContain(beginningEdit.trim())
-  await expect.poll(() => fs.readFileSync(longNotePath, 'utf8'), { timeout: 5_000 }).toContain(middleEdit.trim())
-  await expect.poll(() => fs.readFileSync(longNotePath, 'utf8'), { timeout: 5_000 }).toContain(endEdit.trim())
+  await expect.poll(() => {
+    const savedContent = fs.readFileSync(longNotePath, 'utf8')
+    return [beginningEdit, middleEdit, endEdit].every((edit) => savedContent.includes(edit.trim()))
+  }, { timeout: 5_000 }).toBe(true)
 })
 
 test('opening the plus menu at the end of a long note preserves scroll position', async ({ page }) => {
