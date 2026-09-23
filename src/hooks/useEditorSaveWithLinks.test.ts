@@ -475,7 +475,7 @@ function firstMetadataWorker(): MetadataWorker {
 }
 
 function postedMetadataRequest(worker: MetadataWorker, index: number): { requestId: number } {
-  const request = worker.postMessage.mock.calls[index]?.[0] as { requestId: number } | undefined
+  const request = worker.postMessage.mock.calls.at(index)?.at(0) as { requestId: number } | undefined
   if (!request) throw new Error(`Expected metadata request ${index}`)
   return request
 }
